@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejemplo web workers</title>
+    <script type="text/javascript">
+        //Ponemos la variable hilo como global para asegurarnos una mayor compatibilidad
+        var hilo;
+        function iniciar(){
+            // Al no pertenecer al estandar de ECMAScript, debemos comprobar siempre que el navegador le de soporte
+            // esto nos pasara tambien con otras cosas como la geolocalizacion, etc...)
+            // para esto comprobamos si existe el objeto global Worker
+            if (typeof(Worker) !== "undefined") //Si es distinto de undefined tenemos soporte
+            {
+                //Una vez que estamos seguros de que podemos usar Worker
+                //debemos crear un objeto y en su constructor indicar la ruta
+                // al fichero que tiene el codigo JS que vamos a ejecutar en segundo plano
+                hilo = new Worker("./hilo.js");
+
+                hilo.onmessage = function(event){
+                    console.log(event.data);
+                    //Debemos recuperar el elemento donde vamos a pintar el resultado
+                    //para ello usamos el getElementById, que nos permite seleccionar
+                    //por ID un elemento
+                    //Una vez seleccionado podemos usar el atributo innerHTML
+                    //para modificar su contenido, en este caso le ponemos el
+                    //numero que nos llega desde el hilo
+                    document.getElementById("resultado").innerHTML = event.data;
+                }
+            }
+            else //no tenemos soporte
+            {
+                alert("Error tu navegador no soporta WebWorkers"); 
+            }
+        }
+        //iniciar();
+        //La funcion iniciar la invoco en el evento onload del body, que se ejecuta cuando todos los elementos estan cargados.
+
+        function reiniciar(){
+            // alert ("He pulsado en reiniciar");
+            parar();
+            iniciar();
+        }
+
+        function parar(){
+            if(hilo!=undefined){
+            // alert ("He pulsado en parar");
+            //Para parar la ejecucion de un hilo tenemos un metodo llamado terminate() que finaliza la ejecucion
+            hilo.terminate();
+            //esto es el equivalente a cuando trabajamos con punteros (como en C) que una vez dejas de usar el puntero
+            // ponerlo a null. Es buena practica pero no obligatorio.
+            hilo = undefined;
+            }
+        }
+    </script>
+    <style>
+        button {
+            cursor:pointer;
+            background-color: blue;
+            color: white;
+            border-radius: 10px;
+            padding: 5px 10px;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: green;
+        }
+
+        #resultado {
+            font-size: 46px;
+            text-align: center;
+        }
+
+        .container {
+            height: 100vh;
+            display:flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+    </style>
+</head>
+
+<body onload="iniciar()">
+
+    <div class="container">
+        <div id="resultado"></div>
+        <div class="container">
+            <button id="reiniciar" name="reiniciar" onclick="reiniciar()">Reiniciar</button>
+            <button id="parar" name="parar" onclick="parar()">Parar</button>
+        </div>
+    </div>
+    
+</body>
+</html>
